@@ -1,0 +1,5 @@
+name: Replicator
+main: redsgreens.Replicator.Replicator
+version: 0.0.1
+author: redsgreens
+website: http://dev.bukkit.org/server-mods/replicator/
