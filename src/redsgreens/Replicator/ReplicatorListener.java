@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -46,51 +47,38 @@ public class ReplicatorListener implements Listener {
 			}
 			
 			Boolean validSign = false;
-			Block chest = null;
 			
 			if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.NORTH)))
 			{
 				validSign = true;
 				signBlock.setData((byte)5);
 				signBlock.setType(Material.WALL_SIGN);
-				chest = signBlock.getRelative(BlockFace.NORTH);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.SOUTH)))
 			{
 				validSign = true;
 				signBlock.setType(Material.WALL_SIGN);
 				signBlock.setData((byte)4);
-				chest = signBlock.getRelative(BlockFace.SOUTH);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.EAST)))
 			{
 				validSign = true;
 				signBlock.setData((byte)3);
 				signBlock.setType(Material.WALL_SIGN);
-				chest = signBlock.getRelative(BlockFace.EAST);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.WEST)))
 			{
 				validSign = true;
 				signBlock.setData((byte)2);
 				signBlock.setType(Material.WALL_SIGN);
-				chest = signBlock.getRelative(BlockFace.WEST);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.UP)))
-			{
 				validSign = true;
-				chest = signBlock.getRelative(BlockFace.UP);
-			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.DOWN)))
-			{
 				validSign = true;
-				chest = signBlock.getRelative(BlockFace.DOWN);
-			}
 			
 			if(validSign)
 			{
-				chestInventories.put(chest.getLocation(), ReplicatorUtil.cloneItemStackArray(((Chest)chest.getState()).getInventory().getContents()));
-				
 				final Sign sign = (Sign)signBlock.getState();
 				Plugin.getServer().getScheduler().scheduleSyncDelayedTask(Plugin, new Runnable() {
 				    public void run() {
@@ -136,7 +124,12 @@ public class ReplicatorListener implements Listener {
     				return;
     			}
     			
-    			ItemStack[] items = chestInventories.get(chest.getLocation());
+    			Location loc = chest.getLocation();
+    			
+    			if(!chestInventories.containsKey(loc))
+    				chestInventories.put(loc, ReplicatorUtil.cloneItemStackArray(event.getInventory().getContents()));
+    			
+    			ItemStack[] items = chestInventories.get(loc);
     			if(items == null && ReplicatorUtil.isDoubleChest(chest))
     				items = chestInventories.get(ReplicatorUtil.findOtherHalfofChest(chest).getLocation());
     			
@@ -149,6 +142,26 @@ public class ReplicatorListener implements Listener {
     }
 
 
+    // detect closing of Replicator inventory and reset it to the stored contents of the chest
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInventoryClose(InventoryCloseEvent event)
+    {
+    	Object holderObj = event.getInventory().getHolder();
+    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest)
+    	{
+    		Block chest;
+    		if(holderObj instanceof Chest)
+    			chest = ((Chest)holderObj).getBlock();
+    		else
+    			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
+ 
+    		Location loc = chest.getLocation();
+    		ItemStack[] items = chestInventories.get(loc);
+    		if(items != null)
+    			event.getInventory().setContents(items);
+    	}
+    }
+    
 	// only allow players with permission to break a Replicator sign
     // do not permit breaking a replicator chest with sign attached
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -196,7 +209,6 @@ public class ReplicatorListener implements Listener {
 
 	}
 
-    
     ReplicatorListener(Replicator plugin)
     {
     	Plugin = plugin;
