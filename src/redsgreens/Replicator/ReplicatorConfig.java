@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.logging.Level;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.yaml.snakeyaml.Yaml;
@@ -19,6 +21,7 @@ public class ReplicatorConfig {
 
 	public Boolean ShowErrorsInClient = false;
 	public Boolean AllowNonOpAccess = false;
+	public Boolean VerboseStartup = false;
 	
 	private PermissionHandler Permissions = null;
 	
@@ -78,21 +81,26 @@ public class ReplicatorConfig {
 			boolean configBool = (Boolean)ConfigMap.get("ShowErrorsInClient");
 			if(configBool)
 				ShowErrorsInClient = true;
-			else ShowErrorsInClient = false;		
+		}
+
+		if(ConfigMap.containsKey("VerboseStartup")){
+			boolean configBool = (Boolean)ConfigMap.get("VerboseStartup");
+			if(configBool)
+				VerboseStartup = true;
 		}
 
 		if(ConfigMap.containsKey("AllowNonOpAccess")){
 			boolean configBool = (Boolean)ConfigMap.get("AllowNonOpAccess");
 			if(configBool)
 				AllowNonOpAccess = true;
-			else AllowNonOpAccess = false;		
 		}
 
-		System.out.println("Replicator: ShowErrorsInClient=" + ShowErrorsInClient);
+		if(VerboseStartup)
+		{
+			Plugin.getLogger().log(Level.INFO, "ShowErrorsInClient=" + ShowErrorsInClient);
+			Plugin.getLogger().log(Level.INFO, "AllowNonOpAccess=" + AllowNonOpAccess);
+		}
 		
-		if(Permissions == null)
-			System.out.println("Replicator: AllowNonOpAccess=" + AllowNonOpAccess);
-
 	}
 
 	// return true if Player p has the permission perm
@@ -136,7 +144,8 @@ public class ReplicatorConfig {
             if (Permissions == null) {
                 if (test != null) {
                     Permissions = ((Permissions)test).getHandler();
-                    System.out.println("Replicator: Found permissions handler " + test.getDescription().getName() + " " + test.getDescription().getVersion());
+                    if(VerboseStartup)
+                    	Plugin.getLogger().log(Level.INFO, "Found permissions handler " + test.getDescription().getName() + " " + test.getDescription().getVersion());
                 }
             }
     	}

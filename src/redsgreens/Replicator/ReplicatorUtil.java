@@ -5,7 +5,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
+import de.bananaco.bookapi.lib.CraftBookBuilder;
 
 public class ReplicatorUtil {
 
@@ -144,18 +146,27 @@ public class ReplicatorUtil {
 			return isReplicatorSign((Sign)b.getState());
 	}
 
+	public static CraftItemStack deepCloneItemStack(CraftItemStack is)
+	{
+		if(is == null)
+			return null;
+		else if(is.getType() == Material.WRITTEN_BOOK || is.getType() == Material.BOOK_AND_QUILL)
+			return new CraftBookBuilder().getBook(is).getItemStack();
+		else
+		{
+			CraftItemStack retval = (CraftItemStack) is.clone();
+			retval.addUnsafeEnchantments(is.getEnchantments());
+			return retval;
+		}
+			
+	}
+	
     public static ItemStack[] cloneItemStackArray(ItemStack[] items)
     {
     	ItemStack[] retval = new ItemStack[items.length];
     	
     	for(int i=0; i<items.length; i++)
-    	{
-    		if(items[i] == null)
-    			retval[i] = null;
-    		else
-    			retval[i] = items[i].clone();
-    	}
-    		
+    		retval[i] = deepCloneItemStack((CraftItemStack)items[i]);
     	
     	return retval;
     }
