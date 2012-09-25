@@ -45,9 +45,12 @@ public class SerializableItemStack implements Serializable {
 			if(type == Material.WRITTEN_BOOK.getId() || type == Material.BOOK_AND_QUILL.getId())
 			{
 				Book book = new CraftBookBuilder().getBook(is);
-				tag.put("author", book.getAuthor());
-				tag.put("title", book.getTitle());
-				tag.put("pages", book.getPages());
+				if(book.hasAuthor())
+					tag.put("author", book.getAuthor());
+				if(book.hasTitle())
+					tag.put("title", book.getTitle());
+				if(book.hasPages())
+					tag.put("pages", book.getPages());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

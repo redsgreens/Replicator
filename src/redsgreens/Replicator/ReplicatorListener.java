@@ -38,6 +38,8 @@ public class ReplicatorListener implements Listener {
 		if (event.getLine(0).equalsIgnoreCase("[Replicator]") || event.getLine(0).equals("§1[Replicator]"))
 		{
 
+			event.setCancelled(true);
+			
 			// bail if they don't have permission
 			if (!Plugin.Config.isAuthorized(event.getPlayer(), "create"))
 			{
@@ -48,37 +50,51 @@ public class ReplicatorListener implements Listener {
 			
 			Boolean validSign = false;
 			
+			Block chest = null;
+			
 			if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.NORTH)))
 			{
 				validSign = true;
-				signBlock.setData((byte)5);
 				signBlock.setType(Material.WALL_SIGN);
+				signBlock.setData((byte)5);
+				chest = signBlock.getRelative(BlockFace.NORTH);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.SOUTH)))
 			{
 				validSign = true;
 				signBlock.setType(Material.WALL_SIGN);
 				signBlock.setData((byte)4);
+				chest = signBlock.getRelative(BlockFace.SOUTH);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.EAST)))
 			{
 				validSign = true;
-				signBlock.setData((byte)3);
 				signBlock.setType(Material.WALL_SIGN);
+				signBlock.setData((byte)3);
+				chest = signBlock.getRelative(BlockFace.EAST);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.WEST)))
 			{
 				validSign = true;
-				signBlock.setData((byte)2);
 				signBlock.setType(Material.WALL_SIGN);
+				signBlock.setData((byte)2);
+				chest = signBlock.getRelative(BlockFace.WEST);
 			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.UP)))
+			{
 				validSign = true;
+				chest = signBlock.getRelative(BlockFace.UP);
+			}
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.DOWN)))
+			{
 				validSign = true;
-			
+				chest = signBlock.getRelative(BlockFace.DOWN);
+			}
 			if(validSign)
 			{
+				
+				Plugin.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
+				
 				final Sign sign = (Sign)signBlock.getState();
 				Plugin.getServer().getScheduler().scheduleSyncDelayedTask(Plugin, new Runnable() {
 				    public void run() {

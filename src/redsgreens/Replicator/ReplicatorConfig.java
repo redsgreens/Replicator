@@ -2,13 +2,18 @@ package redsgreens.Replicator;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.logging.Level;
 
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.yaml.snakeyaml.Yaml;
 import com.nijiko.permissions.PermissionHandler;
@@ -48,9 +53,8 @@ public class ReplicatorConfig {
 		
 		// create the data folder if it doesn't exist
 		File folder = Plugin.getDataFolder();
-    	if(!folder.exists()){
+    	if(!folder.exists())
     		folder.mkdirs();
-    	}
 		
 		// create the file from the one in the jar if it doesn't exist on disk
     	File configFile = new File(folder, "config.yml");
@@ -150,5 +154,49 @@ public class ReplicatorConfig {
             }
     	}
     	catch (Exception ex){}
+    }
+    
+    public ItemStack[] loadInventory(Location loc)
+    {
+    	File folder = new File(Plugin.getDataFolder(), "data");
+    	if(!folder.exists())
+    	{
+    		folder.mkdirs();
+    		return null;
+    	}
+
+    
+    	return null;
+    }
+    
+    public void saveInventory(ItemStack[] items, Location loc)
+    {
+    	File folder = new File(Plugin.getDataFolder(), "data");
+    	if(!folder.exists())
+    		folder.mkdirs();
+    	
+    	String fileName = loc.getWorld().getName() + "_" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
+    	File file = new File(folder, fileName);
+    	Yaml yaml = new Yaml();
+
+    	// create serializableitemstack array from items
+    	SerializableItemStack[] sItems = new SerializableItemStack[items.length];
+    	for(int i=0; i<items.length; i++)
+    		if(items[i] == null)
+    			sItems[i] = null;
+    		else
+    			sItems[i] = new SerializableItemStack((CraftItemStack)items[i]);
+    	
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			OutputStreamWriter out = new OutputStreamWriter(fos);
+			out.write(yaml.dump(sItems));
+			out.close();
+			fos.close();
+		} catch (Exception e) {
+			Plugin.getLogger().log(Level.WARNING, e.getStackTrace().toString());
+		}
+
+    	
     }
 }
