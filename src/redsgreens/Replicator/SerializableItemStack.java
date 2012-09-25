@@ -10,6 +10,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 
 import de.bananaco.bookapi.lib.Book;
+import de.bananaco.bookapi.lib.CraftBook;
 import de.bananaco.bookapi.lib.CraftBookBuilder;
 
 public class SerializableItemStack implements Serializable {
@@ -39,14 +40,19 @@ public class SerializableItemStack implements Serializable {
     		Enchantment e = itr.next();
     		enchants.put(e.getId(), eMap.get(e));
     	}
+
+    	try {
+			if(type == Material.WRITTEN_BOOK.getId() || type == Material.BOOK_AND_QUILL.getId())
+			{
+				Book book = new CraftBookBuilder().getBook(is);
+				tag.put("author", book.getAuthor());
+				tag.put("title", book.getTitle());
+				tag.put("pages", book.getPages());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     	
-    	if(type == Material.WRITTEN_BOOK.ordinal() || type == Material.BOOK_AND_QUILL.ordinal())
-    	{
-    		Book book = new CraftBookBuilder().getBook(is);
-    		tag.put("author", book.getAuthor());
-    		tag.put("title", book.getTitle());
-    		tag.put("pages", book.getPages());
-    	}
     }
     
     public CraftItemStack getItemStack()
@@ -60,14 +66,22 @@ public class SerializableItemStack implements Serializable {
     		retval.addUnsafeEnchantment(Enchantment.getById(e), enchants.get(e));
     	}
 
-    	if(type == Material.WRITTEN_BOOK.ordinal() || type == Material.BOOK_AND_QUILL.ordinal())
+    	if(type == Material.WRITTEN_BOOK.getId() || type == Material.BOOK_AND_QUILL.getId())
     	{
-    		Book book = new CraftBookBuilder().getBook(retval);
-    		book.setAuthor((String)tag.get("author"));
-    		book.setTitle((String)tag.get("title"));
-    		book.setPages((String[])tag.get("pages"));
-    		
-    		retval = book.getItemStack();
+    		CraftBook book;
+			try 
+			{
+				book = new CraftBook(retval);
+	    		book.setAuthor((String)tag.get("author"));
+	    		book.setTitle((String)tag.get("title"));
+	    		book.setPages((String[])tag.get("pages"));
+
+	    		retval = book.getItemStack();
+			} 
+			catch (Exception e) 
+			{
+				e.printStackTrace();
+			}
     	}
 
     	return retval;

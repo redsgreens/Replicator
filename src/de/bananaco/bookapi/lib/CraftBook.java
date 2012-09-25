@@ -26,6 +26,7 @@ public class CraftBook implements Book {
         tag = itemstack.getHandle().getTag();
         if(tag == null) {
             tag = new NBTTagCompound();
+            s.getHandle().setTag(tag);
         }
     }
 
