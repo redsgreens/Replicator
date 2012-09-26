@@ -1,7 +1,5 @@
 package redsgreens.Replicator;
 
-import java.util.HashMap;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -14,14 +12,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class ReplicatorListener implements Listener {
 
 	private Replicator Plugin = null;
-	private HashMap<Object, ItemStack[]> chestInventories = new HashMap<Object, ItemStack[]>();
+//	private HashMap<Object, ItemStack[]> chestInventories = new HashMap<Object, ItemStack[]>();
 
 
 	// detect placing of a new [Replicator] sign and save the inventory of the chest(if allowed)
@@ -142,12 +139,9 @@ public class ReplicatorListener implements Listener {
     			
     			Location loc = chest.getLocation();
     			
-    			if(!chestInventories.containsKey(loc))
-    				chestInventories.put(loc, ReplicatorUtil.cloneItemStackArray(event.getInventory().getContents()));
-    			
-    			ItemStack[] items = chestInventories.get(loc);
+    			ItemStack[] items = Plugin.Config.loadInventory(loc);
     			if(items == null && ReplicatorUtil.isDoubleChest(chest))
-    				items = chestInventories.get(ReplicatorUtil.findOtherHalfofChest(chest).getLocation());
+    				items = Plugin.Config.loadInventory(ReplicatorUtil.findOtherHalfofChest(chest).getLocation());
     			
     			if(items != null)
     				event.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
@@ -157,7 +151,7 @@ public class ReplicatorListener implements Listener {
     	}
     }
 
-
+/*
     // detect closing of Replicator inventory and reset it to the stored contents of the chest
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryClose(InventoryCloseEvent event)
@@ -177,7 +171,7 @@ public class ReplicatorListener implements Listener {
     			event.getInventory().setContents(items);
     	}
     }
-    
+*/    
 	// only allow players with permission to break a Replicator sign
     // do not permit breaking a replicator chest with sign attached
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -203,12 +197,12 @@ public class ReplicatorListener implements Listener {
 				{
 					Chest chest = ReplicatorUtil.getAttachedChest(block);
 					Location loc = chest.getLocation();
-					if(chest != null & chestInventories.containsKey(loc))
+					if(chest != null)
 					{
-						chestInventories.remove(loc);
+						Plugin.Config.removeInventory(loc);
 						
 						if(ReplicatorUtil.isDoubleChest(chest.getBlock()))
-							chestInventories.remove(ReplicatorUtil.findOtherHalfofChest(chest.getBlock()).getLocation());
+							Plugin.Config.removeInventory(ReplicatorUtil.findOtherHalfofChest(chest.getBlock()).getLocation());
 					}
 				}
 			}

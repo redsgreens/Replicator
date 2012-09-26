@@ -2,11 +2,14 @@ package redsgreens.Replicator;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -16,6 +19,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
+
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
@@ -156,7 +161,8 @@ public class ReplicatorConfig {
     	catch (Exception ex){}
     }
     
-    public ItemStack[] loadInventory(Location loc)
+    @SuppressWarnings("unchecked")
+	public ItemStack[] loadInventory(Location loc)
     {
     	File folder = new File(Plugin.getDataFolder(), "data");
     	if(!folder.exists())
@@ -165,7 +171,48 @@ public class ReplicatorConfig {
     		return null;
     	}
 
+    	String fileName = loc.getWorld().getName() + "_" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
+    	File file = new File(folder, fileName);
+    	
+    	if(!file.exists())
+    		return null;
+    	
+    	FileInputStream fis = null;
+    	Yaml yaml = new Yaml(new CustomClassLoaderConstructor(getClass().getClassLoader()));
+    	ArrayList<SerializableItemStack> sItems = null;
+
+		try 
+		{
+			fis = new FileInputStream(file);
+			sItems = (ArrayList<SerializableItemStack>)yaml.load(fis);
+			fis.close();
+		} 
+		catch (Exception e) 
+		{
+			if(fis != null)
+			{
+				try {
+					fis.close();
+				} catch (IOException e1) {
+					Plugin.getLogger().log(Level.WARNING, e.getMessage());
+				}
+			}
+			Plugin.getLogger().log(Level.WARNING, e.getMessage());
+		}
     
+		if(sItems != null)
+		{
+			CraftItemStack[] retval = new CraftItemStack[sItems.size()];
+			for(int i=0; i<sItems.size(); i++)
+			{
+				if(sItems.get(i) == null)
+					retval[i] = null;
+				else
+					retval[i] = sItems.get(i).getItemStack();
+			}
+			return retval;
+		}
+		
     	return null;
     }
     
@@ -187,16 +234,37 @@ public class ReplicatorConfig {
     		else
     			sItems[i] = new SerializableItemStack((CraftItemStack)items[i]);
     	
-		try {
+		try 
+		{
 			FileOutputStream fos = new FileOutputStream(file);
 			OutputStreamWriter out = new OutputStreamWriter(fos);
 			out.write(yaml.dump(sItems));
 			out.close();
 			fos.close();
-		} catch (Exception e) {
-			Plugin.getLogger().log(Level.WARNING, e.getStackTrace().toString());
+		} 
+		catch (Exception e) 
+		{
+			Plugin.getLogger().log(Level.WARNING, e.getMessage());
 		}
 
+    }
+    
+    public void removeInventory(Location loc)
+    {
+    	File folder = new File(Plugin.getDataFolder(), "data");
+    	if(!folder.exists())
+    	{
+    		folder.mkdirs();
+    		return;
+    	}
+
+    	String fileName = loc.getWorld().getName() + "_" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
+    	File file = new File(folder, fileName);
+    	
+    	if(!file.exists())
+    		return;
+
+    	file.delete();
     	
     }
 }

@@ -1,6 +1,7 @@
 package redsgreens.Replicator;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -58,7 +59,8 @@ public class SerializableItemStack implements Serializable {
     	
     }
     
-    public CraftItemStack getItemStack()
+    @SuppressWarnings("unchecked")
+	public CraftItemStack getItemStack()
     {
     	CraftItemStack retval = new CraftItemStack(type, amount, damage, data);
     	
@@ -75,9 +77,20 @@ public class SerializableItemStack implements Serializable {
 			try 
 			{
 				book = new CraftBook(retval);
-	    		book.setAuthor((String)tag.get("author"));
-	    		book.setTitle((String)tag.get("title"));
-	    		book.setPages((String[])tag.get("pages"));
+				if(tag.containsKey("author"))
+					book.setAuthor((String)tag.get("author"));
+				
+				if(tag.containsKey("title"))
+					book.setTitle((String)tag.get("title"));
+				
+				if(tag.containsKey("pages"))
+				{
+					Object pagesObj = tag.get("pages");
+					if(pagesObj instanceof ArrayList)
+						book.setPages((ArrayList<String>) pagesObj);
+					else
+						book.setPages((String[]) pagesObj);
+				}
 
 	    		retval = book.getItemStack();
 			} 
