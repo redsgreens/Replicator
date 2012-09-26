@@ -171,4 +171,18 @@ public class ReplicatorUtil {
     	return retval;
     }
 
+    // determines if a Replicator sign has a name
+    public static String getSignName(Sign sign)
+    {
+    	String[] lines = sign.getLines();
+    	
+    	for(int i=1; i<lines.length; i++)
+    	{
+    		if(lines[i] != null)
+    			if(lines[i].trim().length() > 0)
+    				return lines[i].trim().toLowerCase();
+    	}
+    	
+    	return null;
+    }
 }

@@ -7,12 +7,15 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class ReplicatorListener implements Listener {
@@ -34,14 +37,19 @@ public class ReplicatorListener implements Listener {
 		// only proceed if it's a new sign
 		if (event.getLine(0).equalsIgnoreCase("[Replicator]") || event.getLine(0).equals("§1[Replicator]"))
 		{
-
 			event.setCancelled(true);
 			
+			Player player = event.getPlayer();
+			
 			// bail if they don't have permission
-			if (!Plugin.Config.isAuthorized(event.getPlayer(), "create"))
+			if (!Plugin.Config.isAuthorized(player, "create"))
 			{
 				signBlock.setType(Material.AIR);
 				signBlock.getWorld().dropItemNaturally(signBlock.getLocation(), new ItemStack(Material.SIGN, 1));
+				
+				if(Plugin.Config.ShowErrorsInClient)
+					player.sendMessage("§cReplicator: You do not have permission to place this sign.");
+
 				return;
 			}
 			
@@ -93,12 +101,17 @@ public class ReplicatorListener implements Listener {
 				Plugin.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
 				
 				final Sign sign = (Sign)signBlock.getState();
+				final String[] lines = event.getLines();
 				Plugin.getServer().getScheduler().scheduleSyncDelayedTask(Plugin, new Runnable() {
 				    public void run() {
 
 						// set the first line blue if it's not already
 						if(!sign.getLine(0).equals("§1[Replicator]"))
 							sign.setLine(0, "§1[Replicator]");
+
+						sign.setLine(1, lines[1]);
+						sign.setLine(2, lines[2]);
+						sign.setLine(3, lines[3]);
 				    	
 				    	sign.update(true);
 				    }
@@ -108,6 +121,10 @@ public class ReplicatorListener implements Listener {
 			{
 				signBlock.setType(Material.AIR);
 				signBlock.getWorld().dropItemNaturally(signBlock.getLocation(), new ItemStack(Material.SIGN, 1));
+				
+				if(Plugin.Config.ShowErrorsInClient)
+					player.sendMessage("§cReplicator: Sign cannot be placed.");
+
 				return;
 			}
 			
@@ -129,14 +146,33 @@ public class ReplicatorListener implements Listener {
     		else
     			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
     			
-    		if(ReplicatorUtil.getAttachedSign(chest) != null)
+    		Sign sign = ReplicatorUtil.getAttachedSign(chest); 
+    		if(sign != null)
     		{
-    			if(!Plugin.Config.isAuthorized(event.getPlayer().getName(), "access"))
+    			Player player = Plugin.getServer().getPlayer(event.getPlayer().getName());
+    			String playerName = player.getName();
+    			
+    			Boolean accessGranted = false;
+    			if(Plugin.Config.isAuthorized(playerName, "access") || Plugin.Config.isAuthorized(playerName, "access.*"))
+    				accessGranted = true;
+    			else
+    			{
+        			// see if the sign is named, check for more specific permission
+        			String signName = ReplicatorUtil.getSignName(sign);
+        			if(signName != null)
+        				if(Plugin.Config.isAuthorized(playerName, "access." + signName))
+        					accessGranted = true;
+    				
+    			}
+
+    			if(!accessGranted)
     			{
     				event.setCancelled(true);
+    				if(Plugin.Config.ShowErrorsInClient)
+    					player.sendMessage("§cReplicator: You do not have permission to open this chest.");
     				return;
     			}
-    			
+
     			Location loc = chest.getLocation();
     			
     			ItemStack[] items = Plugin.Config.loadInventory(loc);
@@ -151,27 +187,7 @@ public class ReplicatorListener implements Listener {
     	}
     }
 
-/*
-    // detect closing of Replicator inventory and reset it to the stored contents of the chest
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryClose(InventoryCloseEvent event)
-    {
-    	Object holderObj = event.getInventory().getHolder();
-    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest)
-    	{
-    		Block chest;
-    		if(holderObj instanceof Chest)
-    			chest = ((Chest)holderObj).getBlock();
-    		else
-    			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
- 
-    		Location loc = chest.getLocation();
-    		ItemStack[] items = chestInventories.get(loc);
-    		if(items != null)
-    			event.getInventory().setContents(items);
-    	}
-    }
-*/    
+
 	// only allow players with permission to break a Replicator sign
     // do not permit breaking a replicator chest with sign attached
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -182,15 +198,18 @@ public class ReplicatorListener implements Listener {
 		
 		Block block = event.getBlock();
 		Material blockMaterial = block.getType();
+		Player player = event.getPlayer();
 		
 		if(blockMaterial == Material.WALL_SIGN || blockMaterial == Material.SIGN_POST)
 		{
 			Sign sign = (Sign)block.getState();
 			if (ReplicatorUtil.isReplicatorSign(sign))
 			{
-				if(!Plugin.Config.isAuthorized(event.getPlayer(), "destroy"))
+				if(!Plugin.Config.isAuthorized(player, "destroy"))
 				{
 					event.setCancelled(true);
+					if(Plugin.Config.ShowErrorsInClient)
+						player.sendMessage("§cReplicator: You do not have permission to destroy this sign.");
 					return;
 				}
 				else
@@ -213,12 +232,57 @@ public class ReplicatorListener implements Listener {
 			if(sign != null)
 			{
 				event.setCancelled(true);
+				if(Plugin.Config.ShowErrorsInClient)
+					player.sendMessage("§cReplicator: Chest cannot be broken with sign attached.");
 				return;
 			}
 		}
 
 	}
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+	public void onPlayerInteract(PlayerInteractEvent event)
+    {
+    	if(event.getAction() != Action.RIGHT_CLICK_BLOCK || event.isCancelled() == true)
+    		return;
+    	
+    	Block block = event.getClickedBlock();
+    	Material material = block.getType();
+    	
+    	if(material == Material.CHEST)
+    	{
+    		Sign sign = ReplicatorUtil.getAttachedSign(block);
+    		if(sign != null)
+    		{
+    			Player player = Plugin.getServer().getPlayer(event.getPlayer().getName());
+    			String playerName = player.getName();
+    			
+    			Boolean accessGranted = false;
+    			if(Plugin.Config.isAuthorized(playerName, "access") || Plugin.Config.isAuthorized(playerName, "access.*"))
+    				accessGranted = true;
+    			else
+    			{
+        			// see if the sign is named, check for more specific permission
+        			String signName = ReplicatorUtil.getSignName(sign);
+        			if(signName != null)
+        				if(Plugin.Config.isAuthorized(playerName, "access." + signName))
+        					accessGranted = true;
+    				
+    			}
+
+    			if(!accessGranted)
+    			{
+    				event.setCancelled(true);
+    				if(Plugin.Config.ShowErrorsInClient)
+    					player.sendMessage("§cReplicator: You do not have permission to open this chest.");
+    			}
+
+    		}
+
+    	}
+    	
+    }
+    
     ReplicatorListener(Replicator plugin)
     {
     	Plugin = plugin;
