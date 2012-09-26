@@ -1,4 +1,4 @@
-package de.bananaco.bookapi.lib;
+package redsgreens.de.bananaco.bookapi.lib;
 
 import org.bukkit.inventory.ItemStack;
 /**

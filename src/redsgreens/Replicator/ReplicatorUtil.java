@@ -7,7 +7,8 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
-import de.bananaco.bookapi.lib.CraftBookBuilder;
+
+import redsgreens.de.bananaco.bookapi.lib.CraftBookBuilder;
 
 public class ReplicatorUtil {
 

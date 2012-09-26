@@ -1,4 +1,4 @@
-package de.bananaco.bookapi.lib;
+package redsgreens.de.bananaco.bookapi.lib;
 
 import java.util.List;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;

@@ -10,9 +10,10 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 
-import de.bananaco.bookapi.lib.Book;
-import de.bananaco.bookapi.lib.CraftBook;
-import de.bananaco.bookapi.lib.CraftBookBuilder;
+import redsgreens.de.bananaco.bookapi.lib.Book;
+import redsgreens.de.bananaco.bookapi.lib.CraftBook;
+import redsgreens.de.bananaco.bookapi.lib.CraftBookBuilder;
+
 
 public class SerializableItemStack implements Serializable {
 
