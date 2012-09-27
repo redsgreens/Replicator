@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import org.bukkit.Location;
+import org.bukkit.block.Sign;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -272,5 +273,23 @@ public class ReplicatorConfig {
     	file.delete();
     	
     }
-    
+
+    public Boolean canAccessReplicator(Sign sign, Player player)
+    {
+    	Boolean retval = false;
+    	String playerName = player.getName();
+    	
+		if(Replicator.Config.isAuthorized(playerName, "access") || Replicator.Config.isAuthorized(playerName, "access.*"))
+			retval = true;
+		else
+		{
+			// see if the sign is named, check for more specific permission
+			String signName = ReplicatorUtil.getSignName(sign);
+			if(signName != null)
+				if(Replicator.Config.isAuthorized(playerName, "access." + signName))
+					retval = true;
+		}
+    	
+    	return retval;
+    }
 }

@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -137,6 +138,8 @@ public class ReplicatorListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryOpen(InventoryOpenEvent event)
     {
+    	if(event.isCancelled()) return;
+    	
     	Object holderObj = event.getInventory().getHolder();
     	if(holderObj instanceof Chest || holderObj instanceof DoubleChest)
     	{
@@ -150,22 +153,8 @@ public class ReplicatorListener implements Listener {
     		if(sign != null)
     		{
     			Player player = Plugin.getServer().getPlayer(event.getPlayer().getName());
-    			String playerName = player.getName();
     			
-    			Boolean accessGranted = false;
-    			if(Replicator.Config.isAuthorized(playerName, "access") || Replicator.Config.isAuthorized(playerName, "access.*"))
-    				accessGranted = true;
-    			else
-    			{
-        			// see if the sign is named, check for more specific permission
-        			String signName = ReplicatorUtil.getSignName(sign);
-        			if(signName != null)
-        				if(Replicator.Config.isAuthorized(playerName, "access." + signName))
-        					accessGranted = true;
-    				
-    			}
-
-    			if(!accessGranted)
+    			if(!Replicator.Config.canAccessReplicator(sign, player))
     			{
     				event.setCancelled(true);
     				if(Replicator.Config.ShowErrorsInClient)
@@ -187,6 +176,37 @@ public class ReplicatorListener implements Listener {
     	}
     }
 
+
+    // reset chest contents on inventory close so the contents are not lost if the sign is destroyed
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInventoryClose(InventoryCloseEvent event)
+    {
+    	Object holderObj = event.getInventory().getHolder();
+    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest)
+    	{
+    		Block chest;
+    		if(holderObj instanceof Chest)
+    			chest = ((Chest)holderObj).getBlock();
+    		else
+    			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
+    			
+    		Sign sign = ReplicatorUtil.getAttachedSign(chest); 
+    		if(sign != null)
+    		{
+    			Location loc = chest.getLocation();
+    			
+    			ItemStack[] items = Replicator.Config.loadInventory(loc);
+    			if(items == null && ReplicatorUtil.isDoubleChest(chest))
+    				items = Replicator.Config.loadInventory(ReplicatorUtil.findOtherHalfofChest(chest).getLocation());
+    			
+    			if(items != null)
+    				event.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
+    			else
+    				System.out.println("Could not load inventory for Replicator at " + chest.getLocation());
+    		}
+    		
+    	}
+    }
 
 	// only allow players with permission to break a Replicator sign
     // do not permit breaking a replicator chest with sign attached
@@ -255,22 +275,8 @@ public class ReplicatorListener implements Listener {
     		if(sign != null)
     		{
     			Player player = Plugin.getServer().getPlayer(event.getPlayer().getName());
-    			String playerName = player.getName();
-    			
-    			Boolean accessGranted = false;
-    			if(Replicator.Config.isAuthorized(playerName, "access") || Replicator.Config.isAuthorized(playerName, "access.*"))
-    				accessGranted = true;
-    			else
-    			{
-        			// see if the sign is named, check for more specific permission
-        			String signName = ReplicatorUtil.getSignName(sign);
-        			if(signName != null)
-        				if(Replicator.Config.isAuthorized(playerName, "access." + signName))
-        					accessGranted = true;
-    				
-    			}
 
-    			if(!accessGranted)
+    			if(!Replicator.Config.canAccessReplicator(sign, player))
     			{
     				event.setCancelled(true);
     				if(Replicator.Config.ShowErrorsInClient)
