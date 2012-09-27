@@ -131,22 +131,6 @@ public class ReplicatorUtil {
 		return str.replaceAll("\u00A7[0-9a-fA-F]", "");
 	}
 
-	public static Boolean isReplicatorSign(Sign sign)
-	{
-		if(sign.getLine(0).equals("§1[Replicator]"))
-			return true;
-		else
-			return false;
-	}
-	
-	public static Boolean isReplicatorSign(Block b)
-	{
-		if(b.getType() != Material.WALL_SIGN && b.getType() != Material.SIGN_POST)
-			return false;
-		else
-			return isReplicatorSign((Sign)b.getState());
-	}
-
 	public static CraftItemStack deepCloneItemStack(CraftItemStack is)
 	{
 		if(is == null)
@@ -186,4 +170,21 @@ public class ReplicatorUtil {
     	
     	return null;
     }
+    
+	public static Boolean isReplicatorSign(Sign sign)
+	{
+		if(sign.getLine(0).equals("§1[" + Replicator.Config.SignTag + "]"))
+			return true;
+		else
+			return false;
+	}
+
+	public static Boolean isReplicatorSign(Block b)
+	{
+		if(b.getType() != Material.WALL_SIGN && b.getType() != Material.SIGN_POST)
+			return false;
+		else
+			return isReplicatorSign((Sign)b.getState());
+	}
+
 }

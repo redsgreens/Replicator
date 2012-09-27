@@ -24,7 +24,7 @@ public class ReplicatorListener implements Listener {
 //	private HashMap<Object, ItemStack[]> chestInventories = new HashMap<Object, ItemStack[]>();
 
 
-	// detect placing of a new [Replicator] sign and save the inventory of the chest(if allowed)
+	// detect placing of a new replicator sign and save the inventory of the chest(if allowed)
     @EventHandler(priority = EventPriority.HIGHEST)
 	public void onSignChange(SignChangeEvent event)
 	// looks for a new SupplySign and tests it for validity
@@ -35,19 +35,19 @@ public class ReplicatorListener implements Listener {
 		final Block signBlock = event.getBlock();
 
 		// only proceed if it's a new sign
-		if (event.getLine(0).equalsIgnoreCase("[Replicator]") || event.getLine(0).equals("§1[Replicator]"))
+		if (event.getLine(0).equalsIgnoreCase("[" + Replicator.Config.SignTag +"]") || event.getLine(0).equals("§1[" + Replicator.Config.SignTag + "]"))
 		{
 			event.setCancelled(true);
 			
 			Player player = event.getPlayer();
 			
 			// bail if they don't have permission
-			if (!Plugin.Config.isAuthorized(player, "create"))
+			if (!Replicator.Config.isAuthorized(player, "create"))
 			{
 				signBlock.setType(Material.AIR);
 				signBlock.getWorld().dropItemNaturally(signBlock.getLocation(), new ItemStack(Material.SIGN, 1));
 				
-				if(Plugin.Config.ShowErrorsInClient)
+				if(Replicator.Config.ShowErrorsInClient)
 					player.sendMessage("§cReplicator: You do not have permission to place this sign.");
 
 				return;
@@ -98,7 +98,7 @@ public class ReplicatorListener implements Listener {
 			if(validSign)
 			{
 				
-				Plugin.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
+				Replicator.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
 				
 				final Sign sign = (Sign)signBlock.getState();
 				final String[] lines = event.getLines();
@@ -106,8 +106,8 @@ public class ReplicatorListener implements Listener {
 				    public void run() {
 
 						// set the first line blue if it's not already
-						if(!sign.getLine(0).equals("§1[Replicator]"))
-							sign.setLine(0, "§1[Replicator]");
+						if(!sign.getLine(0).equals("§1[" + Replicator.Config.SignTag + "]"))
+							sign.setLine(0, "§1[" + Replicator.Config.SignTag + "]");
 
 						sign.setLine(1, lines[1]);
 						sign.setLine(2, lines[2]);
@@ -122,7 +122,7 @@ public class ReplicatorListener implements Listener {
 				signBlock.setType(Material.AIR);
 				signBlock.getWorld().dropItemNaturally(signBlock.getLocation(), new ItemStack(Material.SIGN, 1));
 				
-				if(Plugin.Config.ShowErrorsInClient)
+				if(Replicator.Config.ShowErrorsInClient)
 					player.sendMessage("§cReplicator: Sign cannot be placed.");
 
 				return;
@@ -153,14 +153,14 @@ public class ReplicatorListener implements Listener {
     			String playerName = player.getName();
     			
     			Boolean accessGranted = false;
-    			if(Plugin.Config.isAuthorized(playerName, "access") || Plugin.Config.isAuthorized(playerName, "access.*"))
+    			if(Replicator.Config.isAuthorized(playerName, "access") || Replicator.Config.isAuthorized(playerName, "access.*"))
     				accessGranted = true;
     			else
     			{
         			// see if the sign is named, check for more specific permission
         			String signName = ReplicatorUtil.getSignName(sign);
         			if(signName != null)
-        				if(Plugin.Config.isAuthorized(playerName, "access." + signName))
+        				if(Replicator.Config.isAuthorized(playerName, "access." + signName))
         					accessGranted = true;
     				
     			}
@@ -168,16 +168,16 @@ public class ReplicatorListener implements Listener {
     			if(!accessGranted)
     			{
     				event.setCancelled(true);
-    				if(Plugin.Config.ShowErrorsInClient)
+    				if(Replicator.Config.ShowErrorsInClient)
     					player.sendMessage("§cReplicator: You do not have permission to open this chest.");
     				return;
     			}
 
     			Location loc = chest.getLocation();
     			
-    			ItemStack[] items = Plugin.Config.loadInventory(loc);
+    			ItemStack[] items = Replicator.Config.loadInventory(loc);
     			if(items == null && ReplicatorUtil.isDoubleChest(chest))
-    				items = Plugin.Config.loadInventory(ReplicatorUtil.findOtherHalfofChest(chest).getLocation());
+    				items = Replicator.Config.loadInventory(ReplicatorUtil.findOtherHalfofChest(chest).getLocation());
     			
     			if(items != null)
     				event.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
@@ -205,10 +205,10 @@ public class ReplicatorListener implements Listener {
 			Sign sign = (Sign)block.getState();
 			if (ReplicatorUtil.isReplicatorSign(sign))
 			{
-				if(!Plugin.Config.isAuthorized(player, "destroy"))
+				if(!Replicator.Config.isAuthorized(player, "destroy"))
 				{
 					event.setCancelled(true);
-					if(Plugin.Config.ShowErrorsInClient)
+					if(Replicator.Config.ShowErrorsInClient)
 						player.sendMessage("§cReplicator: You do not have permission to destroy this sign.");
 					return;
 				}
@@ -218,10 +218,10 @@ public class ReplicatorListener implements Listener {
 					Location loc = chest.getLocation();
 					if(chest != null)
 					{
-						Plugin.Config.removeInventory(loc);
+						Replicator.Config.removeInventory(loc);
 						
 						if(ReplicatorUtil.isDoubleChest(chest.getBlock()))
-							Plugin.Config.removeInventory(ReplicatorUtil.findOtherHalfofChest(chest.getBlock()).getLocation());
+							Replicator.Config.removeInventory(ReplicatorUtil.findOtherHalfofChest(chest.getBlock()).getLocation());
 					}
 				}
 			}
@@ -232,7 +232,7 @@ public class ReplicatorListener implements Listener {
 			if(sign != null)
 			{
 				event.setCancelled(true);
-				if(Plugin.Config.ShowErrorsInClient)
+				if(Replicator.Config.ShowErrorsInClient)
 					player.sendMessage("§cReplicator: Chest cannot be broken with sign attached.");
 				return;
 			}
@@ -258,14 +258,14 @@ public class ReplicatorListener implements Listener {
     			String playerName = player.getName();
     			
     			Boolean accessGranted = false;
-    			if(Plugin.Config.isAuthorized(playerName, "access") || Plugin.Config.isAuthorized(playerName, "access.*"))
+    			if(Replicator.Config.isAuthorized(playerName, "access") || Replicator.Config.isAuthorized(playerName, "access.*"))
     				accessGranted = true;
     			else
     			{
         			// see if the sign is named, check for more specific permission
         			String signName = ReplicatorUtil.getSignName(sign);
         			if(signName != null)
-        				if(Plugin.Config.isAuthorized(playerName, "access." + signName))
+        				if(Replicator.Config.isAuthorized(playerName, "access." + signName))
         					accessGranted = true;
     				
     			}
@@ -273,7 +273,7 @@ public class ReplicatorListener implements Listener {
     			if(!accessGranted)
     			{
     				event.setCancelled(true);
-    				if(Plugin.Config.ShowErrorsInClient)
+    				if(Replicator.Config.ShowErrorsInClient)
     					player.sendMessage("§cReplicator: You do not have permission to open this chest.");
     			}
 

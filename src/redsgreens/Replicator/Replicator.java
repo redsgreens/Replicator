@@ -10,7 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Replicator extends JavaPlugin implements Listener {
 
-	public ReplicatorConfig Config;
+	public static ReplicatorConfig Config;
 	private ReplicatorListener replicatorListener;
 	
     public void onEnable() 

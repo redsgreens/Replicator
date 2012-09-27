@@ -12,7 +12,6 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
-
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -32,6 +31,7 @@ public class ReplicatorConfig {
 	public Boolean ShowErrorsInClient = false;
 	public Boolean AllowNonOpAccess = false;
 	public Boolean VerboseStartup = false;
+	public String SignTag = "Replicator";
 	
 	private PermissionHandler Permissions = null;
 	
@@ -104,10 +104,15 @@ public class ReplicatorConfig {
 				AllowNonOpAccess = true;
 		}
 
+		if(ConfigMap.containsKey("SignTag")){
+			SignTag = (String)ConfigMap.get("SignTag");
+		}
+
 		if(VerboseStartup)
 		{
 			Plugin.getLogger().log(Level.INFO, "ShowErrorsInClient=" + ShowErrorsInClient);
 			Plugin.getLogger().log(Level.INFO, "AllowNonOpAccess=" + AllowNonOpAccess);
+			Plugin.getLogger().log(Level.INFO, "SignTag=" + SignTag);
 		}
 		
 	}
@@ -267,4 +272,5 @@ public class ReplicatorConfig {
     	file.delete();
     	
     }
+    
 }

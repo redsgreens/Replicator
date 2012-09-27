@@ -3,7 +3,7 @@
 #                     plugin startup
 #
 # Allowed values are: Yes 
-#                     No 
+#                     No
 # 
 VerboseStartup: No
 
@@ -11,8 +11,8 @@ VerboseStartup: No
 # ShowErrorsInClient: toggle that determines if permissions or other error messages
 #                     are displayed client-side
 #
-# Allowed values are: Yes (shows errors to players)
-#                     No (errors only show up in server console)
+# Allowed values are: Yes 
+#                     No 
 # 
 ShowErrorsInClient: Yes
 
@@ -25,3 +25,10 @@ ShowErrorsInClient: Yes
 #
 AllowNonOpAccess: No
 
+#
+# SignTag: the text that must be placed between brackets on the first line of a
+#          replicator sign  
+#
+# Allowed value: any single word, ie. "Replicator", "GetStuff", "Toast"
+#
+SignTag: Replicator
