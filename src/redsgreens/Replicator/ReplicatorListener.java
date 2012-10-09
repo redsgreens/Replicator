@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.block.Dispenser;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -99,7 +101,11 @@ public class ReplicatorListener implements Listener {
 			if(validSign)
 			{
 				
-				Replicator.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
+				Material material = chest.getType();
+				if(material == Material.CHEST)
+					Replicator.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
+				else
+					Replicator.Config.saveInventory(((Dispenser)chest.getState()).getInventory().getContents(), chest.getLocation());
 				
 				final Sign sign = (Sign)signBlock.getState();
 				final String[] lines = event.getLines();
@@ -141,13 +147,14 @@ public class ReplicatorListener implements Listener {
     	if(event.isCancelled()) return;
     	
     	Object holderObj = event.getInventory().getHolder();
-    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest)
+    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest || holderObj instanceof Dispenser)
     	{
     		Block chest;
     		if(holderObj instanceof Chest)
     			chest = ((Chest)holderObj).getBlock();
-    		else
+    		else if(holderObj instanceof DoubleChest)
     			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
+    		else chest = ((Dispenser)holderObj).getBlock();
     			
     		Sign sign = ReplicatorUtil.getAttachedSign(chest); 
     		if(sign != null)
@@ -171,7 +178,7 @@ public class ReplicatorListener implements Listener {
     			if(items != null)
     				event.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
     			else
-    				System.out.println("Could not load inventory for Replicator at " + chest.getLocation());
+    				Plugin.getLogger().info("Could not load inventory for Replicator at " + chest.getLocation());
     		}
     	}
     }
@@ -182,13 +189,14 @@ public class ReplicatorListener implements Listener {
     public void onInventoryClose(InventoryCloseEvent event)
     {
     	Object holderObj = event.getInventory().getHolder();
-    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest)
+    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest || holderObj instanceof Dispenser)
     	{
     		Block chest;
     		if(holderObj instanceof Chest)
     			chest = ((Chest)holderObj).getBlock();
-    		else
+    		else if(holderObj instanceof DoubleChest)
     			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
+    		else chest = ((Dispenser)holderObj).getBlock();
     			
     		Sign sign = ReplicatorUtil.getAttachedSign(chest); 
     		if(sign != null)
@@ -202,7 +210,7 @@ public class ReplicatorListener implements Listener {
     			if(items != null)
     				event.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
     			else
-    				System.out.println("Could not load inventory for Replicator at " + chest.getLocation());
+    				Plugin.getLogger().info("Could not load inventory for Replicator at " + chest.getLocation());
     		}
     		
     	}
@@ -234,19 +242,19 @@ public class ReplicatorListener implements Listener {
 				}
 				else
 				{
-					Chest chest = ReplicatorUtil.getAttachedChest(block);
-					Location loc = chest.getLocation();
-					if(chest != null)
+					Block b = ReplicatorUtil.getAttachedChest(block);
+					Location loc = b.getLocation();
+					if(b != null)
 					{
 						Replicator.Config.removeInventory(loc);
 						
-						if(ReplicatorUtil.isDoubleChest(chest.getBlock()))
-							Replicator.Config.removeInventory(ReplicatorUtil.findOtherHalfofChest(chest.getBlock()).getLocation());
+						if(ReplicatorUtil.isDoubleChest(b))
+							Replicator.Config.removeInventory(ReplicatorUtil.findOtherHalfofChest(b).getLocation());
 					}
 				}
 			}
 		}
-		else if (event.getBlock().getType() == Material.CHEST)
+		else if (blockMaterial == Material.CHEST || blockMaterial == Material.DISPENSER)
 		{
 			Sign sign = ReplicatorUtil.getAttachedSign(event.getBlock());
 			if(sign != null)
@@ -269,7 +277,7 @@ public class ReplicatorListener implements Listener {
     	Block block = event.getClickedBlock();
     	Material material = block.getType();
     	
-    	if(material == Material.CHEST)
+    	if(material == Material.CHEST || material == Material.DISPENSER)
     	{
     		Sign sign = ReplicatorUtil.getAttachedSign(block);
     		if(sign != null)
@@ -286,6 +294,38 @@ public class ReplicatorListener implements Listener {
     		}
 
     	}
+    	
+    }
+
+	// refill the dispenser after it fires
+    @EventHandler(priority = EventPriority.HIGHEST)
+	public void onBlockDispense(BlockDispenseEvent event)
+    {
+    	Block block = event.getBlock();
+		Sign sign = ReplicatorUtil.getAttachedSign(block); 
+		if(sign != null)
+		{
+	    	Location loc = block.getLocation();
+	    	final Dispenser dispenser = (Dispenser)block.getState();
+
+			final ItemStack[] items = Replicator.Config.loadInventory(loc);
+			if(items != null)
+			{
+				// reload the inventory now
+				dispenser.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
+
+				// reload the inventory after the dispense has happened
+				Plugin.getServer().getScheduler().scheduleSyncDelayedTask(Plugin, new Runnable() {
+				    public void run() {
+						dispenser.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
+				    }
+				}, 1);
+
+			}
+			else
+				Plugin.getLogger().info("Could not load inventory for Replicator at " + loc);
+
+		}
     	
     }
     

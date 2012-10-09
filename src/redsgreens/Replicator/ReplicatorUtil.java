@@ -3,7 +3,6 @@ package redsgreens.Replicator;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
@@ -14,20 +13,21 @@ public class ReplicatorUtil {
 
 	// check to see if this is a chest without a replicator sign already on it
 	public static boolean isValidChest(Block b){
-		if(b.getType() != Material.CHEST)
-			return false;
+		Material material = b.getType();
 
-		if(getAttachedSign(b) == null)
-			return true;
-		else
-			return false;
+		if(material == Material.CHEST || material == Material.DISPENSER )
+			if(getAttachedSign(b) == null)
+				return true;
+		
+		return false;
 
 	}
 
 	// check to see if this is a single wide chest
 	public static boolean isSingleChest(Block b){
+		Material material = b.getType();
 		
-		if(b.getType() != Material.CHEST)
+		if(material != Material.CHEST && material != Material.DISPENSER)
 			return false;
 
 		Block[] adjBlocks = new Block[]{b.getRelative(BlockFace.NORTH), b.getRelative(BlockFace.EAST), b.getRelative(BlockFace.SOUTH), b.getRelative(BlockFace.WEST)};
@@ -78,13 +78,15 @@ public class ReplicatorUtil {
 		return null;
 	}
 	
-	public static Chest getAttachedChest(Block b)
+	public static Block getAttachedChest(Block b)
 	{
 		Block[] adjBlocks = new Block[]{b.getRelative(BlockFace.NORTH), b.getRelative(BlockFace.EAST), b.getRelative(BlockFace.SOUTH), b.getRelative(BlockFace.WEST), b.getRelative(BlockFace.UP), b.getRelative(BlockFace.DOWN)};
 		for(int i=0; i<adjBlocks.length; i++)
-			if(adjBlocks[i].getType() == Material.CHEST)
-				return (Chest)adjBlocks[i].getState();
-		
+		{
+			Material material = adjBlocks[i].getType(); 
+			if(material == Material.CHEST || material == Material.DISPENSER)
+				return adjBlocks[i];
+		}
 		return null;		
 	}
 
