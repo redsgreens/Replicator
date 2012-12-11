@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 
 import redsgreens.de.bananaco.bookapi.lib.Book;
