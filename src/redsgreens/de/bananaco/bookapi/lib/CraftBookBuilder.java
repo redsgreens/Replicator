@@ -1,6 +1,7 @@
 package redsgreens.de.bananaco.bookapi.lib;
 
-import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
+//import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 
 /**

@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
-
 import redsgreens.de.bananaco.bookapi.lib.Book;
 import redsgreens.de.bananaco.bookapi.lib.CraftBook;
 import redsgreens.de.bananaco.bookapi.lib.CraftBookBuilder;
+
+//import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 
 
 public class SerializableItemStack implements Serializable {

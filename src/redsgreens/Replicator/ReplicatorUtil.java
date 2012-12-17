@@ -4,8 +4,10 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
-import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
+
+//import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 
 import redsgreens.de.bananaco.bookapi.lib.CraftBookBuilder;
 
@@ -110,6 +112,22 @@ public class ReplicatorUtil {
 		if(sign.getType() == Material.WALL_SIGN)
 		{
 			switch(signBlock.getData()){ // determine sign direction and get block behind it
+
+	/////////// for CB1.4.5-R0.2 and earlier
+			case 2: // facing east
+				blockAgainst = signBlock.getRelative(BlockFace.WEST);
+				break;
+			case 3: // facing west
+				blockAgainst = signBlock.getRelative(BlockFace.EAST);
+				break;
+			case 4: // facing north
+				blockAgainst = signBlock.getRelative(BlockFace.SOUTH);
+				break;
+			case 5: // facing south
+				blockAgainst = signBlock.getRelative(BlockFace.NORTH);
+				break;				
+/*
+/////////// for CB1.4.5-R0.3 and later
 			case 2: // facing north
 				blockAgainst = signBlock.getRelative(BlockFace.SOUTH);
 				break;
@@ -122,6 +140,7 @@ public class ReplicatorUtil {
 			case 5: // facing east
 				blockAgainst = signBlock.getRelative(BlockFace.WEST);
 				break;
+*/
 			}
 		}
 		
