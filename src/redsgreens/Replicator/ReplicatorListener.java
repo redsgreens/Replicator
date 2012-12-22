@@ -60,40 +60,6 @@ public class ReplicatorListener implements Listener {
 			
 			Block chest = null;
 
-			/////////// for CB1.4.5-R0.2 and earlier
-
-			if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.NORTH)))
-			{
-				validSign = true;
-				signBlock.setType(Material.WALL_SIGN);
-				signBlock.setData((byte)5);
-				chest = signBlock.getRelative(BlockFace.NORTH);
-			}
-			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.SOUTH)))
-			{
-				validSign = true;
-				signBlock.setType(Material.WALL_SIGN);
-				signBlock.setData((byte)4);
-				chest = signBlock.getRelative(BlockFace.SOUTH);
-			}
-			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.EAST)))
-			{
-				validSign = true;
-				signBlock.setType(Material.WALL_SIGN);
-				signBlock.setData((byte)3);
-				chest = signBlock.getRelative(BlockFace.EAST);
-			}
-			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.WEST)))
-			{
-				validSign = true;
-				signBlock.setType(Material.WALL_SIGN);
-				signBlock.setData((byte)2);
-				chest = signBlock.getRelative(BlockFace.WEST);
-			}
-			
-/*
-			/////////// for CB1.4.5-R0.3 and later
-
 			if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.WEST)))
 			{
 				validSign = true;
@@ -122,7 +88,6 @@ public class ReplicatorListener implements Listener {
 				signBlock.setData((byte)2);
 				chest = signBlock.getRelative(BlockFace.SOUTH);
 			}
-*/			
 			else if(ReplicatorUtil.isValidChest(signBlock.getRelative(BlockFace.UP)))
 			{
 				validSign = true;

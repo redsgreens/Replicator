@@ -22,9 +22,6 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-//import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
-
 public class ReplicatorConfig {
 
 	private Replicator Plugin;	
@@ -178,7 +175,7 @@ public class ReplicatorConfig {
     		return null;
     	}
 
-    	String fileName = loc.getWorld().getName() + "_" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
+    	String fileName = loc.getWorld().getName() + "-" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
     	File file = new File(folder, fileName);
     	
     	if(!file.exists())
@@ -209,7 +206,7 @@ public class ReplicatorConfig {
     
 		if(sItems != null)
 		{
-			CraftItemStack[] retval = new CraftItemStack[sItems.size()];
+			ItemStack[] retval = new ItemStack[sItems.size()];
 			for(int i=0; i<sItems.size(); i++)
 			{
 				if(sItems.get(i) == null)
@@ -229,7 +226,7 @@ public class ReplicatorConfig {
     	if(!folder.exists())
     		folder.mkdirs();
     	
-    	String fileName = loc.getWorld().getName() + "_" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
+    	String fileName = loc.getWorld().getName() + "-" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
     	File file = new File(folder, fileName);
     	Yaml yaml = new Yaml();
 
@@ -239,7 +236,7 @@ public class ReplicatorConfig {
     		if(items[i] == null)
     			sItems[i] = null;
     		else
-    			sItems[i] = new SerializableItemStack((CraftItemStack)items[i]);
+    			sItems[i] = new SerializableItemStack((ItemStack)items[i]);
     	
 		try 
 		{
@@ -265,7 +262,7 @@ public class ReplicatorConfig {
     		return;
     	}
 
-    	String fileName = loc.getWorld().getName() + "_" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
+    	String fileName = loc.getWorld().getName() + "-" + Math.round(loc.getX()) + "_" + Math.round(loc.getY()) + "_" + Math.round(loc.getZ()) + ".yml";
     	File file = new File(folder, fileName);
     	
     	if(!file.exists())

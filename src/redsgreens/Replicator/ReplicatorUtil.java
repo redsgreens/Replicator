@@ -6,11 +6,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.inventory.ItemStack;
 
-//import org.bukkit.craftbukkit.v1_4_5.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
-
-import redsgreens.de.bananaco.bookapi.lib.CraftBookBuilder;
-
 public class ReplicatorUtil {
 
 	// check to see if this is a chest without a replicator sign already on it
@@ -113,21 +108,6 @@ public class ReplicatorUtil {
 		{
 			switch(signBlock.getData()){ // determine sign direction and get block behind it
 
-	/////////// for CB1.4.5-R0.2 and earlier
-			case 2: // facing east
-				blockAgainst = signBlock.getRelative(BlockFace.WEST);
-				break;
-			case 3: // facing west
-				blockAgainst = signBlock.getRelative(BlockFace.EAST);
-				break;
-			case 4: // facing north
-				blockAgainst = signBlock.getRelative(BlockFace.SOUTH);
-				break;
-			case 5: // facing south
-				blockAgainst = signBlock.getRelative(BlockFace.NORTH);
-				break;				
-/*
-/////////// for CB1.4.5-R0.3 and later
 			case 2: // facing north
 				blockAgainst = signBlock.getRelative(BlockFace.SOUTH);
 				break;
@@ -140,7 +120,7 @@ public class ReplicatorUtil {
 			case 5: // facing east
 				blockAgainst = signBlock.getRelative(BlockFace.WEST);
 				break;
-*/
+
 			}
 		}
 		
@@ -152,27 +132,15 @@ public class ReplicatorUtil {
 		return str.replaceAll("\u00A7[0-9a-fA-F]", "");
 	}
 
-	public static CraftItemStack deepCloneItemStack(CraftItemStack is)
-	{
-		if(is == null)
-			return null;
-		else if(is.getType() == Material.WRITTEN_BOOK || is.getType() == Material.BOOK_AND_QUILL)
-			return new CraftBookBuilder().getBook(is).getItemStack();
-		else
-		{
-			CraftItemStack retval = (CraftItemStack) is.clone();
-			retval.addUnsafeEnchantments(is.getEnchantments());
-			return retval;
-		}
-			
-	}
-	
     public static ItemStack[] cloneItemStackArray(ItemStack[] items)
     {
     	ItemStack[] retval = new ItemStack[items.length];
     	
     	for(int i=0; i<items.length; i++)
-    		retval[i] = deepCloneItemStack((CraftItemStack)items[i]);
+    		if(items[i] != null)
+    			retval[i] = items[i].clone();
+    		else
+    			retval[i] = null;
     	
     	return retval;
     }
