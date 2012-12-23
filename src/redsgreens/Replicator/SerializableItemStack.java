@@ -1,12 +1,15 @@
 package redsgreens.Replicator;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Builder;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -15,7 +18,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.FireworkEffectMeta;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class SerializableItemStack implements Serializable {
 
@@ -77,20 +84,29 @@ public class SerializableItemStack implements Serializable {
         	}
         	else if (meta instanceof PotionMeta)
         	{
-//TODO: serializing potion effects is a PITA
-/*
         		PotionMeta pMeta = (PotionMeta)meta;
 
         		if(pMeta.getCustomEffects().size() > 0)
         		{
+        			List<PotionEffect> effectsIn = pMeta.getCustomEffects();
+        			Iterator<PotionEffect> pItr = effectsIn.iterator();
+        			ArrayList<HashMap<String, Integer>> effectsOut = new ArrayList<HashMap<String, Integer>>();
         			
-        			Iterator<PotionEffect> pItr = pMeta.getCustomEffects().iterator();
             		while(pItr.hasNext())
             		{
-            			PotionEffect p = pItr.next();
+            			PotionEffect effectIn = pItr.next();
+            			HashMap<String, Integer> effectOut = new HashMap<String, Integer>();
+            			
+            			effectOut.put("aplifier", effectIn.getAmplifier());
+            			effectOut.put("duration", effectIn.getDuration());
+            			effectOut.put("type", effectIn.getType().getId());
+            			
+            			effectsOut.add(effectOut);
             		}
+            		
+            		tag.put("effects", effectsOut);
         		}
-*/
+
         	}
         	else if (meta instanceof SkullMeta)
         	{
@@ -98,7 +114,40 @@ public class SerializableItemStack implements Serializable {
 
         		tag.put("owner", sMeta.getOwner());
         	}
-        	
+        	else if(meta instanceof FireworkMeta)
+        	{
+        		FireworkMeta fMeta = (FireworkMeta)meta;
+        		List<FireworkEffect> effectsIn = fMeta.getEffects();
+        		ArrayList<HashMap<String, Object>> effectsOut = new ArrayList<HashMap<String, Object>>(); 
+        		
+        		Iterator<FireworkEffect> effectItr = effectsIn.iterator();
+        		while(effectItr.hasNext())
+        			effectsOut.add(serializeFireworkEffect(effectItr.next()));
+
+        		tag.put("effects", effectsOut);
+        	}
+        	else if(meta instanceof FireworkEffectMeta)
+        	{
+        		FireworkEffectMeta feMeta = (FireworkEffectMeta)meta;
+        		
+    			tag.put("effect", serializeFireworkEffect(feMeta.getEffect()));
+        	}
+        	else if(meta instanceof EnchantmentStorageMeta)
+        	{
+        		EnchantmentStorageMeta esMeta = (EnchantmentStorageMeta)meta;
+        		
+        		Map<Enchantment, Integer> seMap = esMeta.getStoredEnchants();
+                Iterator<Enchantment> seItr = seMap.keySet().iterator();
+                HashMap<Integer, Integer> sEnchants = new HashMap<Integer, Integer>();
+                
+                while(seItr.hasNext())
+                {
+                    Enchantment e = seItr.next();
+                    sEnchants.put(e.getId(), seMap.get(e));
+                }
+                
+                tag.put("storedenchants", sEnchants);
+        	}
     	}    	
     }
     
@@ -153,7 +202,22 @@ public class SerializableItemStack implements Serializable {
     		}
     		else if(material == Material.POTION)
     		{
-//TODO: potions again...
+    			if(tag.containsKey("effects"))
+    			{
+    				PotionMeta pMeta = (PotionMeta)meta;
+    				
+    				ArrayList<HashMap<String, Integer>> effectsIn = (ArrayList<HashMap<String, Integer>>)tag.get("effects");
+    				Iterator<HashMap<String, Integer>> eItr = effectsIn.iterator();
+    				while(eItr.hasNext())
+    				{
+    					HashMap<String, Integer> effectIn = eItr.next();
+    					PotionEffect effectOut = new PotionEffect(PotionEffectType.getById((Integer)effectIn.get("type")), (Integer)effectIn.get("duration"), (Integer)effectIn.get("amplifier"));
+    					
+    					pMeta.addCustomEffect(effectOut, true);
+    				}
+    				
+    				retval.setItemMeta(pMeta);
+    			}
     		}
     		else if(material == Material.SKULL || material == Material.SKULL_ITEM)
     		{
@@ -165,6 +229,56 @@ public class SerializableItemStack implements Serializable {
     			}
     			
     		}
+    		else if(material == Material.FIREWORK_CHARGE)
+    		{
+    			if(tag.containsKey("effect"))
+    			{
+    				FireworkEffectMeta feMeta = (FireworkEffectMeta)meta;
+    				HashMap<String, Object> effectIn = (HashMap<String, Object>)tag.get("effect");
+    				
+    				FireworkEffect effect = deserializeFireworkEffect(effectIn);
+    				
+    				if(effect != null)
+    				{
+    					feMeta.setEffect(effect);
+    				    retval.setItemMeta(feMeta);
+    				}
+    			}
+    		}
+    		else if(material == Material.FIREWORK)
+    		{
+    			if(tag.containsKey("effects"))
+    			{
+    				FireworkMeta fMeta = (FireworkMeta)meta;
+    				
+    				ArrayList<HashMap<String, Object>> effectsIn = (ArrayList<HashMap<String, Object>>)tag.get("effects");
+    				Iterator<HashMap<String, Object>> eItr = effectsIn.iterator();
+    				while(eItr.hasNext())
+    				{
+    					FireworkEffect e = deserializeFireworkEffect(eItr.next());
+    					
+    					if(e != null)
+    						fMeta.addEffect(e);
+    				}
+    				
+    				retval.setItemMeta(fMeta);
+    			}
+    		}
+    		else if(material == Material.ENCHANTED_BOOK)
+    		{
+    			if(tag.containsKey("storedenchants"))
+    			{
+    				EnchantmentStorageMeta esMeta = (EnchantmentStorageMeta)meta;
+    				HashMap<Integer, Integer> sEnchants = (HashMap<Integer, Integer>)tag.get("storedenchants");
+    				Iterator<Integer> seItr = sEnchants.keySet().iterator();
+    				while(seItr.hasNext())
+    				{
+    					Integer e = seItr.next();
+    					esMeta.addEnchant(Enchantment.getById(e), sEnchants.get(e), true);
+    				}
+    				retval.setItemMeta(esMeta);
+    			}
+    		}
     		else
     			retval.setItemMeta(meta);
     		
@@ -173,6 +287,74 @@ public class SerializableItemStack implements Serializable {
     	return retval;
     }
     
+	@SuppressWarnings("unchecked")
+	FireworkEffect deserializeFireworkEffect(HashMap<String, Object> effectIn)
+	{
+		FireworkEffect retval = null;
+		
+		try
+		{
+			Builder builder = FireworkEffect.builder();
+			
+			if(effectIn.containsKey("flicker"))
+				builder = builder.flicker((Boolean)effectIn.get("flicker"));
+
+			if(effectIn.containsKey("trail"))
+				builder = builder.trail((Boolean)effectIn.get("trail"));
+
+			if(effectIn.containsKey("colors"))
+			{
+				List<Integer> colorsIn = (List<Integer>)effectIn.get("colors");
+				ArrayList<Color> colorsOut = new ArrayList<Color>();
+				Iterator<Integer> colorItr = colorsIn.iterator();
+				while(colorItr.hasNext())
+					colorsOut.add(Color.fromRGB(colorItr.next()));
+
+				builder = builder.withColor(colorsOut);
+			}
+
+			if(effectIn.containsKey("fadecolors"))
+			{
+				List<Integer> fadeColorsIn = (List<Integer>)effectIn.get("fadecolors");
+				ArrayList<Color> fadeColorsOut = new ArrayList<Color>();
+				Iterator<Integer> fadeColorItr = fadeColorsIn.iterator();
+				while(fadeColorItr.hasNext())
+					fadeColorsOut.add(Color.fromRGB(fadeColorItr.next()));
+				
+				builder = builder.withFade(fadeColorsOut);
+			}
+			
+			retval = builder.build();
+		}
+		catch(Exception e) {}
+		
+		return retval;
+	}
+
+	HashMap<String, Object> serializeFireworkEffect(FireworkEffect effectIn)
+	{
+		HashMap<String, Object> effectOut = new HashMap<String, Object>();
+		
+		effectOut.put("flicker", effectIn.hasFlicker());
+		effectOut.put("trail", effectIn.hasTrail());
+		
+		List<Color> colorsIn = effectIn.getColors();
+		ArrayList<Integer> colorsOut = new ArrayList<Integer>();
+		Iterator<Color> colorItr = colorsIn.iterator();
+		while(colorItr.hasNext())
+			colorsOut.add(colorItr.next().asRGB());
+		effectOut.put("colors", colorsOut);
+		
+		List<Color> fadeColorsIn = effectIn.getFadeColors();
+		ArrayList<Integer> fadeColorsOut = new ArrayList<Integer>();
+		Iterator<Color> fadeColorItr = fadeColorsIn.iterator();
+		while(fadeColorItr.hasNext())
+			fadeColorsOut.add(fadeColorItr.next().asRGB());
+		effectOut.put("fadecolors", fadeColorsOut);
+		
+		return effectOut;
+	}
+	
     public SerializableItemStack()
     {
     }
