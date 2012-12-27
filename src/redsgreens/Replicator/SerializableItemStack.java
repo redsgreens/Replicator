@@ -120,6 +120,8 @@ public class SerializableItemStack implements Serializable {
         		List<FireworkEffect> effectsIn = fMeta.getEffects();
         		ArrayList<HashMap<String, Object>> effectsOut = new ArrayList<HashMap<String, Object>>(); 
         		
+        		tag.put("power", fMeta.getPower());
+        		
         		Iterator<FireworkEffect> effectItr = effectsIn.iterator();
         		while(effectItr.hasNext())
         			effectsOut.add(serializeFireworkEffect(effectItr.next()));
@@ -247,9 +249,13 @@ public class SerializableItemStack implements Serializable {
     		}
     		else if(material == Material.FIREWORK)
     		{
-    			if(tag.containsKey("effects"))
+
+				FireworkMeta fMeta = (FireworkMeta)meta;
+
+				fMeta.setPower((Integer)tag.get("power"));
+
+				if(tag.containsKey("effects"))
     			{
-    				FireworkMeta fMeta = (FireworkMeta)meta;
     				
     				ArrayList<HashMap<String, Object>> effectsIn = (ArrayList<HashMap<String, Object>>)tag.get("effects");
     				Iterator<HashMap<String, Object>> eItr = effectsIn.iterator();
@@ -261,8 +267,10 @@ public class SerializableItemStack implements Serializable {
     						fMeta.addEffect(e);
     				}
     				
-    				retval.setItemMeta(fMeta);
     			}
+
+				retval.setItemMeta(fMeta);
+
     		}
     		else if(material == Material.ENCHANTED_BOOK)
     		{
@@ -302,6 +310,9 @@ public class SerializableItemStack implements Serializable {
 			if(effectIn.containsKey("trail"))
 				builder = builder.trail((Boolean)effectIn.get("trail"));
 
+			if(effectIn.containsKey("type"))
+				builder = builder.with(org.bukkit.FireworkEffect.Type.valueOf((String)effectIn.get("type")));
+			
 			if(effectIn.containsKey("colors"))
 			{
 				List<Integer> colorsIn = (List<Integer>)effectIn.get("colors");
@@ -325,6 +336,7 @@ public class SerializableItemStack implements Serializable {
 			}
 			
 			retval = builder.build();
+			
 		}
 		catch(Exception e) {}
 		
@@ -337,6 +349,7 @@ public class SerializableItemStack implements Serializable {
 		
 		effectOut.put("flicker", effectIn.hasFlicker());
 		effectOut.put("trail", effectIn.hasTrail());
+		effectOut.put("type", effectIn.getType().toString());
 		
 		List<Color> colorsIn = effectIn.getColors();
 		ArrayList<Integer> colorsOut = new ArrayList<Integer>();
