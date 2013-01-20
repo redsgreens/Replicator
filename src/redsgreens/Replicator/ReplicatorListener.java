@@ -24,8 +24,6 @@ import org.bukkit.inventory.ItemStack;
 public class ReplicatorListener implements Listener {
 
 	private Replicator Plugin = null;
-//	private HashMap<Object, ItemStack[]> chestInventories = new HashMap<Object, ItemStack[]>();
-
 
 	// detect placing of a new replicator sign and save the inventory of the chest(if allowed)
     @EventHandler(priority = EventPriority.HIGHEST)

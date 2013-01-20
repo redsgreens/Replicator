@@ -21,6 +21,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -156,8 +157,10 @@ public class SerializableItemStack implements Serializable {
 	@SuppressWarnings("unchecked")
 	public ItemStack getItemStack()
     {
-    	@SuppressWarnings("deprecation")
-		ItemStack retval = new ItemStack(type, amount, damage, data);
+		ItemStack retval = new ItemStack(type);
+		retval.setAmount(amount);
+		retval.setDurability(damage);
+		retval.setData(new MaterialData(data));
 
         Iterator<Integer> itr = enchants.keySet().iterator();
         while(itr.hasNext())
