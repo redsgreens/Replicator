@@ -12,7 +12,7 @@ public class ReplicatorUtil {
 	public static boolean isValidChest(Block b){
 		Material material = b.getType();
 
-		if(material == Material.CHEST || material == Material.DISPENSER )
+		if(material == Material.CHEST || material == Material.DISPENSER || material == Material.DROPPER)
 			if(getAttachedSign(b) == null)
 				return true;
 		
@@ -24,7 +24,7 @@ public class ReplicatorUtil {
 	public static boolean isSingleChest(Block b){
 		Material material = b.getType();
 		
-		if(material != Material.CHEST && material != Material.DISPENSER)
+		if(material != Material.CHEST && material != Material.DISPENSER && material != Material.DROPPER)
 			return false;
 
 		Block[] adjBlocks = new Block[]{b.getRelative(BlockFace.NORTH), b.getRelative(BlockFace.EAST), b.getRelative(BlockFace.SOUTH), b.getRelative(BlockFace.WEST)};
@@ -81,7 +81,7 @@ public class ReplicatorUtil {
 		for(int i=0; i<adjBlocks.length; i++)
 		{
 			Material material = adjBlocks[i].getType(); 
-			if(material == Material.CHEST || material == Material.DISPENSER)
+			if(material == Material.CHEST || material == Material.DISPENSER || material == Material.DROPPER)
 				return adjBlocks[i];
 		}
 		return null;		

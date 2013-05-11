@@ -7,6 +7,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Dispenser;
+import org.bukkit.block.Dropper;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +20,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class ReplicatorListener implements Listener {
@@ -102,8 +104,10 @@ public class ReplicatorListener implements Listener {
 				Material material = chest.getType();
 				if(material == Material.CHEST)
 					Replicator.Config.saveInventory(((Chest)chest.getState()).getInventory().getContents(), chest.getLocation());
-				else
+				else if(material == Material.DISPENSER)
 					Replicator.Config.saveInventory(((Dispenser)chest.getState()).getInventory().getContents(), chest.getLocation());
+				else
+					Replicator.Config.saveInventory(((Dropper)chest.getState()).getInventory().getContents(), chest.getLocation());
 				
 				final Sign sign = (Sign)signBlock.getState();
 				final String[] lines = event.getLines();
@@ -145,14 +149,17 @@ public class ReplicatorListener implements Listener {
     	if(event.isCancelled()) return;
     	
     	Object holderObj = event.getInventory().getHolder();
-    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest || holderObj instanceof Dispenser)
+    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest || holderObj instanceof Dispenser || holderObj instanceof Dropper)
     	{
     		Block chest;
     		if(holderObj instanceof Chest)
     			chest = ((Chest)holderObj).getBlock();
     		else if(holderObj instanceof DoubleChest)
     			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
-    		else chest = ((Dispenser)holderObj).getBlock();
+    		else if(holderObj instanceof Dispenser) 
+    			chest = ((Dispenser)holderObj).getBlock();
+    		else
+    			chest = ((Dropper)holderObj).getBlock();
     			
     		Sign sign = ReplicatorUtil.getAttachedSign(chest); 
     		if(sign != null)
@@ -187,14 +194,17 @@ public class ReplicatorListener implements Listener {
     public void onInventoryClose(InventoryCloseEvent event)
     {
     	Object holderObj = event.getInventory().getHolder();
-    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest || holderObj instanceof Dispenser)
+    	if(holderObj instanceof Chest || holderObj instanceof DoubleChest || holderObj instanceof Dispenser || holderObj instanceof Dropper)
     	{
     		Block chest;
     		if(holderObj instanceof Chest)
     			chest = ((Chest)holderObj).getBlock();
     		else if(holderObj instanceof DoubleChest)
     			chest = ((DoubleChest)holderObj).getWorld().getBlockAt(((DoubleChest)holderObj).getLocation());
-    		else chest = ((Dispenser)holderObj).getBlock();
+    		else if(holderObj instanceof Dispenser)
+    			chest = ((Dispenser)holderObj).getBlock();
+    		else
+    			chest = ((Dropper)holderObj).getBlock();
     			
     		Sign sign = ReplicatorUtil.getAttachedSign(chest); 
     		if(sign != null)
@@ -252,7 +262,7 @@ public class ReplicatorListener implements Listener {
 				}
 			}
 		}
-		else if (blockMaterial == Material.CHEST || blockMaterial == Material.DISPENSER)
+		else if (blockMaterial == Material.CHEST || blockMaterial == Material.DISPENSER || blockMaterial == Material.DROPPER)
 		{
 			Sign sign = ReplicatorUtil.getAttachedSign(event.getBlock());
 			if(sign != null)
@@ -275,7 +285,7 @@ public class ReplicatorListener implements Listener {
     	Block block = event.getClickedBlock();
     	Material material = block.getType();
     	
-    	if(material == Material.CHEST || material == Material.DISPENSER)
+    	if(material == Material.CHEST || material == Material.DISPENSER || material == Material.DROPPER)
     	{
     		Sign sign = ReplicatorUtil.getAttachedSign(block);
     		if(sign != null)
@@ -304,18 +314,27 @@ public class ReplicatorListener implements Listener {
 		if(sign != null)
 		{
 	    	Location loc = block.getLocation();
-	    	final Dispenser dispenser = (Dispenser)block.getState();
+	    	
+	    	Object holderObj = block.getState();
+	    	Inventory inv;
+	    	
+	    	if(holderObj instanceof Dispenser)
+	    		inv = ((Dispenser)holderObj).getInventory();
+	    	else
+	    		inv = ((Dropper)holderObj).getInventory();
+	    	
+	    	final Inventory finalInv = inv;
 
 			final ItemStack[] items = Replicator.Config.loadInventory(loc);
 			if(items != null)
 			{
 				// reload the inventory now
-				dispenser.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
+				finalInv.setContents(ReplicatorUtil.cloneItemStackArray(items));
 
 				// reload the inventory after the dispense has happened
 				Plugin.getServer().getScheduler().scheduleSyncDelayedTask(Plugin, new Runnable() {
 				    public void run() {
-						dispenser.getInventory().setContents(ReplicatorUtil.cloneItemStackArray(items));
+						finalInv.setContents(ReplicatorUtil.cloneItemStackArray(items));
 				    }
 				}, 1);
 
